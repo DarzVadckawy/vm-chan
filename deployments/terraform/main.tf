@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.1"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
@@ -31,6 +35,18 @@ data "aws_ami" "ubuntu" {
 
 resource "random_id" "sg_suffix" {
   byte_length = 4
+}
+
+# Create a TLS private key for the EC2 instance
+resource "tls_private_key" "k3s_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Create the EC2 key pair using the generated public key
+resource "aws_key_pair" "k3s_key" {
+  key_name   = "${var.name}-key-${random_id.sg_suffix.hex}"
+  public_key = tls_private_key.k3s_key.public_key_openssh
 }
 
 resource "aws_security_group" "k3s" {
@@ -92,7 +108,7 @@ resource "aws_security_group" "k3s" {
 resource "aws_instance" "k3s" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
-  key_name                    = var.key_name
+  key_name                    = aws_key_pair.k3s_key.key_name
   vpc_security_group_ids      = [aws_security_group.k3s.id]
   associate_public_ip_address = true
 

@@ -13,7 +13,18 @@ output "security_group_id" {
   value       = aws_security_group.k3s.id
 }
 
+output "key_name" {
+  description = "EC2 key pair name"
+  value       = aws_key_pair.k3s_key.key_name
+}
+
+output "private_key" {
+  description = "Private key for SSH access"
+  value       = tls_private_key.k3s_key.private_key_pem
+  sensitive   = true
+}
+
 output "ssh_command" {
   description = "SSH command to connect to the instance"
-  value       = "ssh -i ~/.ssh/${var.key_name}.pem ubuntu@${aws_instance.k3s.public_ip}"
+  value       = "ssh -i ~/.ssh/${aws_key_pair.k3s_key.key_name}.pem ubuntu@${aws_instance.k3s.public_ip}"
 }

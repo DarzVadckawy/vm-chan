@@ -89,6 +89,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     outputs:
       PUBLIC_IP: ${{ steps.tf-out.outputs.PUBLIC_IP }}
+      PRIVATE_KEY: ${{ steps.tf-out.outputs.PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -121,9 +122,13 @@ jobs:
             -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - id: tf-out
-        name: Export EC2 public IP
+        name: Export EC2 public IP and private key
         working-directory: deployments/terraform
-        run: echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+        run: |
+          echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+          echo "PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+          terraform output -raw private_key >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   ansible:
     runs-on: ubuntu-latest
@@ -134,10 +139,10 @@ jobs:
       - name: Install Ansible and SSH client
         run: sudo apt-get update && sudo apt-get install -y ansible openssh-client
 
-      - name: Prepare SSH key
+      - name: Prepare SSH key from Terraform
         run: |
           mkdir -p .ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > .ssh/id_rsa
+          echo "${{ needs.terraform.outputs.PRIVATE_KEY }}" > .ssh/id_rsa
           chmod 600 .ssh/id_rsa
 
       - name: Render Ansible inventory
@@ -211,10 +216,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare SSH key
+      - name: Prepare SSH key from Terraform
         run: |
           mkdir -p .ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > .ssh/id_rsa
+          echo "${{ needs.terraform.outputs.PRIVATE_KEY }}" > .ssh/id_rsa
           chmod 600 .ssh/id_rsa
 
       - name: Create/Update secrets in cluster
