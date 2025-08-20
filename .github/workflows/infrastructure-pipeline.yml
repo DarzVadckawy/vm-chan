@@ -112,7 +112,6 @@ jobs:
         run: |
           terraform plan -no-color \
             -var="key_name=${{ secrets.AWS_KEY_NAME }}" \
-            -var="my_ip_cidr=${{ secrets.MY_IP_CIDR }}" \
             -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - name: Terraform Apply
@@ -120,7 +119,6 @@ jobs:
         run: |
           terraform apply -auto-approve \
             -var="key_name=${{ secrets.AWS_KEY_NAME }}" \
-            -var="my_ip_cidr=${{ secrets.MY_IP_CIDR }}" \
             -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - id: tf-out

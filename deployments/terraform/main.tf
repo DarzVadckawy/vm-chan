@@ -30,11 +30,12 @@ resource "aws_security_group" "k3s" {
   description = "Security group for k3s node"
   vpc_id      = data.aws_vpc.default.id
 
+  # SSH access from anywhere (temporary for testing)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # HTTP/HTTPS access
@@ -60,12 +61,12 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # k3s API server
+  # k3s API server (temporary open access for testing)
   ingress {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
