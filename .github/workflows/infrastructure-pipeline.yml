@@ -196,7 +196,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64  # Remove arm64 to speed up builds significantly
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -235,16 +235,9 @@ jobs:
           PUBLIC_IP: ${{ needs.terraform.outputs.PUBLIC_IP }}
           IMAGE: ${{ needs.build_push.outputs.image }}
         run: |
-          # Apply namespace
           cat deployments/k8s/namespace.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
-          
-          # Apply service
           cat deployments/k8s/service.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
-          
-          # Deploy application with correct image
           sed 's#ghcr.io/REPO_OWNER/REPO_NAME:{{GIT_SHA}}#${{ env.IMAGE }}#' deployments/k8s/app-deployment.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
-          
-          # Wait for deployment rollout and show status
           ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} '
             kubectl -n vmchan rollout status deployment/vm-chan --timeout=300s
             kubectl -n vmchan get pods,svc
@@ -252,7 +245,7 @@ jobs:
 
       - name: Display access information
         run: |
-          echo "🚀 Deployment completed successfully!"
-          echo "📍 Application URL: http://${{ needs.terraform.outputs.PUBLIC_IP }}:30080"
-          echo "🔍 Health check: http://${{ needs.terraform.outputs.PUBLIC_IP }}:30080/healthz"
-          echo "📊 SSH access: ssh -i ~/.ssh/your-key ubuntu@${{ needs.terraform.outputs.PUBLIC_IP }}"
+          echo "Deployment completed successfully!"
+          echo "Application URL: http://${{ needs.terraform.outputs.PUBLIC_IP }}:30080"
+          echo "Health check: http://${{ needs.terraform.outputs.PUBLIC_IP }}:30080/healthz"
+          echo "SSH access: ssh -i ~/.ssh/your-key ubuntu@${{ needs.terraform.outputs.PUBLIC_IP }}"

@@ -14,7 +14,6 @@ type AuthHandler struct {
 	logger  *zap.Logger
 }
 
-// NewAuthHandler creates a new authentication handler
 func NewAuthHandler(service domain.AuthService, logger *zap.Logger) *AuthHandler {
 	return &AuthHandler{
 		service: service,
@@ -22,18 +21,6 @@ func NewAuthHandler(service domain.AuthService, logger *zap.Logger) *AuthHandler
 	}
 }
 
-// Login godoc
-// @Summary User login
-// @Description Authenticate user and return JWT token
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body domain.LoginRequest true "Login credentials"
-// @Success 200 {object} domain.LoginResponse "Login successful"
-// @Failure 400 {object} domain.ErrorResponse "Invalid request"
-// @Failure 401 {object} domain.ErrorResponse "Authentication failed"
-// @Failure 500 {object} domain.ErrorResponse "Server error"
-// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req domain.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

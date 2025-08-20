@@ -14,7 +14,6 @@ type TextAnalysisHandler struct {
 	logger  *zap.Logger
 }
 
-// NewTextAnalysisHandler creates a new text analysis handler
 func NewTextAnalysisHandler(service domain.TextAnalysisService, logger *zap.Logger) *TextAnalysisHandler {
 	return &TextAnalysisHandler{
 		service: service,
@@ -22,19 +21,6 @@ func NewTextAnalysisHandler(service domain.TextAnalysisService, logger *zap.Logg
 	}
 }
 
-// AnalyzeText godoc
-// @Summary Analyze text sentence
-// @Description Analyzes a sentence and returns word count, vowels, and consonants
-// @Tags Text Analysis
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param text_data body domain.TextAnalysisRequest true "Text to analyze"
-// @Success 200 {object} domain.TextAnalysisResponse "Success"
-// @Failure 400 {object} domain.ErrorResponse "Invalid request"
-// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
-// @Failure 500 {object} domain.ErrorResponse "Server error"
-// @Router /api/v1/analyze [post]
 func (h *TextAnalysisHandler) AnalyzeText(c *gin.Context) {
 	var req domain.TextAnalysisRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -47,7 +33,6 @@ func (h *TextAnalysisHandler) AnalyzeText(c *gin.Context) {
 		return
 	}
 
-	// Validate input
 	if req.Sentence == "" {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
 			Error:       "Sentence cannot be empty",

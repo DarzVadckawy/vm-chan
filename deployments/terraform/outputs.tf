@@ -32,6 +32,6 @@ output "ssh_command" {
 output "ansible_inventory" {
   description = "Ansible inventory content"
   value = templatefile("${path.module}/inventory.tpl", {
-    public_ip = aws_instance.k3s.public_ip
+    PUBLIC_IP = aws_instance.k3s.public_ip
   })
 }

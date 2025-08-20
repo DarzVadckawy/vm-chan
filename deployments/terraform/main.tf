@@ -26,7 +26,7 @@ data "aws_vpc" "default" {
 
 data "aws_ami" "ubuntu" {
   most_recent = true
-  owners      = ["099720109477"] # Canonical
+  owners      = ["099720109477"]
   filter {
     name   = "name"
     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
@@ -37,13 +37,11 @@ resource "random_id" "sg_suffix" {
   byte_length = 4
 }
 
-# Create a TLS private key for the EC2 instance
 resource "tls_private_key" "k3s_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-# Create the EC2 key pair using the generated public key
 resource "aws_key_pair" "k3s_key" {
   key_name   = "${var.name}-key-${random_id.sg_suffix.hex}"
   public_key = tls_private_key.k3s_key.public_key_openssh
@@ -54,7 +52,6 @@ resource "aws_security_group" "k3s" {
   description = "Security group for k3s node"
   vpc_id      = data.aws_vpc.default.id
 
-  # SSH access from anywhere (temporary for testing)
   ingress {
     from_port   = 22
     to_port     = 22
@@ -62,7 +59,6 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # HTTP/HTTPS access
   ingress {
     from_port   = 80
     to_port     = 80
@@ -77,7 +73,6 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # NodePort range for k3s services
   ingress {
     from_port   = 30000
     to_port     = 32767
@@ -85,7 +80,6 @@ resource "aws_security_group" "k3s" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # k3s API server (temporary open access for testing)
   ingress {
     from_port   = 6443
     to_port     = 6443

@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"vm-chan/internal/domain"
 
@@ -24,7 +25,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// NewAuthService creates a new instance of authentication service
 func NewAuthService(userRepo domain.UserRepository, jwtSecret string, logger *zap.Logger) domain.AuthService {
 	return &authService{
 		userRepo:  userRepo,
@@ -33,7 +33,6 @@ func NewAuthService(userRepo domain.UserRepository, jwtSecret string, logger *za
 	}
 }
 
-// Login authenticates user credentials and returns JWT token
 func (s *authService) Login(ctx context.Context, username, password string) (*domain.LoginResponse, error) {
 	s.logger.Info("Login attempt", zap.String("username", username))
 
@@ -43,13 +42,11 @@ func (s *authService) Login(ctx context.Context, username, password string) (*do
 		return nil, errors.New("invalid credentials")
 	}
 
-	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		s.logger.Error("Invalid password", zap.String("username", username))
 		return nil, errors.New("invalid credentials")
 	}
 
-	// Generate JWT token
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID:   user.ID,
@@ -76,7 +73,6 @@ func (s *authService) Login(ctx context.Context, username, password string) (*do
 	}, nil
 }
 
-// ValidateToken validates JWT token and returns user information
 func (s *authService) ValidateToken(ctx context.Context, tokenString string) (*domain.User, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {

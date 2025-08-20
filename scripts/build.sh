@@ -1,16 +1,12 @@
 #!/bin/bash
 
-# VM-Chan Build and Deployment Scripts
-
 set -e
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Project variables
 PROJECT_NAME="vm-chan"
 IMAGE_NAME="vm-chan"
 VERSION=${1:-latest}
@@ -18,7 +14,6 @@ VERSION=${1:-latest}
 echo -e "${GREEN}VM-Chan Build Script${NC}"
 echo "Version: $VERSION"
 
-# Function to print colored output
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -31,7 +26,6 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Build application
 build_app() {
     print_status "Building Go application..."
     go mod tidy
@@ -39,7 +33,6 @@ build_app() {
     print_status "Application built successfully"
 }
 
-# Run tests
 run_tests() {
     print_status "Running tests..."
     go test -v -race -coverprofile=coverage.out ./...
@@ -47,7 +40,6 @@ run_tests() {
     print_status "Tests completed"
 }
 
-# Build Docker image
 build_docker() {
     print_status "Building Docker image..."
     docker build -t $IMAGE_NAME:$VERSION .
@@ -55,7 +47,6 @@ build_docker() {
     print_status "Docker image built: $IMAGE_NAME:$VERSION"
 }
 
-# Generate Swagger docs
 generate_docs() {
     print_status "Generating API documentation..."
     if command -v swag &> /dev/null; then
@@ -66,23 +57,18 @@ generate_docs() {
     fi
 }
 
-# Deploy to k3s
 deploy_k3s() {
     print_status "Deploying to k3s..."
 
-    # Load Docker image to k3s
     docker save $IMAGE_NAME:latest | sudo k3s ctr images import -
 
-    # Apply Kubernetes manifests
     kubectl apply -f deployments/k8s/
 
-    # Wait for deployment
     kubectl wait --for=condition=available --timeout=300s deployment/vm-chan -n vm-chan
 
     print_status "Deployment completed"
 }
 
-# Main execution
 case "${1:-all}" in
     "test")
         run_tests

@@ -16,9 +16,7 @@ type userRepository struct {
 	logger *zap.Logger
 }
 
-// NewUserRepository creates a new in-memory user repository
 func NewUserRepository(logger *zap.Logger) domain.UserRepository {
-	// Create default admin user with hashed password
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 	users := map[string]*domain.User{
@@ -35,7 +33,6 @@ func NewUserRepository(logger *zap.Logger) domain.UserRepository {
 	}
 }
 
-// GetByUsername retrieves a user by username
 func (r *userRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	user, exists := r.users[username]
 	if !exists {

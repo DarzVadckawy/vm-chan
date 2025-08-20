@@ -1,6 +1,5 @@
 package domain
 
-// ErrorResponse represents a standardized error response
 type ErrorResponse struct {
 	Error       string `json:"error" example:"Invalid request format"`
 	Code        string `json:"code,omitempty" example:"validation_error"`

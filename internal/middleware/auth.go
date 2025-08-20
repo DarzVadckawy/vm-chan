@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// AuthMiddleware creates a JWT authentication middleware
 func AuthMiddleware(authService domain.AuthService, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -21,10 +20,8 @@ func AuthMiddleware(authService domain.AuthService, logger *zap.Logger) gin.Hand
 			return
 		}
 
-		// Extract token - accept both "Bearer <token>" format or just "<token>"
 		token := authHeader
 		if strings.HasPrefix(authHeader, "Bearer ") {
-			// If it has the Bearer prefix, extract the token part
 			tokenParts := strings.Split(authHeader, " ")
 			if len(tokenParts) != 2 {
 				logger.Warn("Invalid authorization header format")
@@ -43,7 +40,6 @@ func AuthMiddleware(authService domain.AuthService, logger *zap.Logger) gin.Hand
 			return
 		}
 
-		// Store user in context
 		c.Set("user", user)
 		c.Next()
 	}

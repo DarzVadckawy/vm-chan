@@ -5,7 +5,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// LoggingMiddleware creates a structured logging middleware
 func LoggingMiddleware(logger *zap.Logger) gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 		logger.Info("HTTP Request",
@@ -21,7 +20,6 @@ func LoggingMiddleware(logger *zap.Logger) gin.HandlerFunc {
 	})
 }
 
-// CORSMiddleware handles CORS headers
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -38,7 +36,6 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// SecurityMiddleware adds security headers
 func SecurityMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("X-Content-Type-Options", "nosniff")
