@@ -13,10 +13,11 @@ variable "name" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.medium"
+  default     = "t2.micro"
 }
 
 variable "key_name" {
   description = "AWS key pair name for SSH access"
   type        = string
+  default     = "vm-chan-key"
 }
