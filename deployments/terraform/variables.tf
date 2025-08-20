@@ -20,8 +20,3 @@ variable "key_name" {
   description = "AWS key pair name for SSH access"
   type        = string
 }
-
-variable "my_ip_cidr" {
-  description = "Your public IP in CIDR format for SSH access"
-  type        = string
-}
