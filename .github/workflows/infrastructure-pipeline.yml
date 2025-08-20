@@ -235,29 +235,20 @@ jobs:
           PUBLIC_IP: ${{ needs.terraform.outputs.PUBLIC_IP }}
           IMAGE: ${{ needs.build_push.outputs.image }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} bash -lc "
-            # Apply namespace
-            kubectl apply -f - <<EOF
-            $(cat deployments/k8s/namespace.yaml)
-            EOF
-
-            # Apply service
-            kubectl apply -f - <<EOF
-            $(cat deployments/k8s/service.yaml)
-            EOF
-
-            # Deploy application with correct image
-            sed 's#ghcr.io/REPO_OWNER/REPO_NAME:{{GIT_SHA}}#${{ env.IMAGE }}#' \
-              /dev/stdin <<EOF | kubectl apply -f -
-            $(cat deployments/k8s/app-deployment.yaml)
-            EOF
-
-            # Wait for deployment rollout
+          # Apply namespace
+          cat deployments/k8s/namespace.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
+          
+          # Apply service
+          cat deployments/k8s/service.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
+          
+          # Deploy application with correct image
+          sed 's#ghcr.io/REPO_OWNER/REPO_NAME:{{GIT_SHA}}#${{ env.IMAGE }}#' deployments/k8s/app-deployment.yaml | ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} 'kubectl apply -f -'
+          
+          # Wait for deployment rollout and show status
+          ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa ubuntu@${{ env.PUBLIC_IP }} '
             kubectl -n vmchan rollout status deployment/vm-chan --timeout=300s
-
-            # Show deployment status
             kubectl -n vmchan get pods,svc
-          "
+          '
 
       - name: Display access information
         run: |

@@ -28,3 +28,10 @@ output "ssh_command" {
   description = "SSH command to connect to the instance"
   value       = "ssh -i ~/.ssh/${aws_key_pair.k3s_key.key_name}.pem ubuntu@${aws_instance.k3s.public_ip}"
 }
+
+output "ansible_inventory" {
+  description = "Ansible inventory content"
+  value = templatefile("${path.module}/inventory.tpl", {
+    public_ip = aws_instance.k3s.public_ip
+  })
+}
