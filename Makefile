@@ -98,28 +98,23 @@ terraform-destroy:
 	@echo "Destroying Terraform infrastructure..."
 	@cd deployments/terraform && terraform destroy
 
-k8s-deploy:
-	@echo "Deploying to Kubernetes..."
-	@kubectl apply -f deployments/k8s/
+terraform-output:
+	@echo "Getting Terraform outputs..."
+	@cd deployments/terraform && terraform output
 
-k8s-status:
-	@echo "Checking deployment status..."
-	@kubectl get pods -n vm-chan
-	@kubectl get services -n vm-chan
+terraform-ip:
+	@echo "Getting EC2 instance public IP..."
+	@cd deployments/terraform && terraform output -raw public_ip 2>/dev/null || echo "No Terraform state found. Run 'make terraform-apply' first."
 
-k8s-logs:
-	@echo "Getting application logs..."
-	@kubectl logs -f deployment/vm-chan -n vm-chan
-
-k8s-delete:
-	@echo "Deleting Kubernetes deployment..."
-	@kubectl delete -f deployments/k8s/
+deploy-remote:
+	@echo "Deploying to remote AWS infrastructure..."
+	@echo "Use one of the following methods:"
+	@echo "  1. Push to main branch (triggers GitHub Actions CI/CD)"
+	@echo "  2. Run ./scripts/deploy.sh for manual deployment"
+	@echo "  3. Use GitHub Actions manually via GitHub UI"
 
 ci: lint security test
 	@echo "CI pipeline completed successfully!"
-
-cd: docker-build k8s-deploy
-	@echo "CD pipeline completed successfully!"
 
 install-tools:
 	@echo "Installing development tools..."
