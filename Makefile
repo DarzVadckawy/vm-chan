@@ -1,9 +1,10 @@
-.PHONY: help build test clean docker deploy docs lint security
+.PHONY: help build test clean docker deploy docs lint security sonar sonar-local
 
 BINARY_NAME=vm-chan
 DOCKER_IMAGE=vm-chan
 VERSION?=latest
 COVERAGE_FILE=coverage.out
+SONAR_SCANNER_VERSION=4.8.0.2856
 
 help:
 	@echo "VM-Chan Microservice"
@@ -18,7 +19,6 @@ build:
 build-linux:
 	@echo "Building $(BINARY_NAME) for Linux..."
 	@go mod tidy
-	@CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/$(BINARY_NAME) ./cmd/server
 
 run: build
 	@echo "Starting $(BINARY_NAME)..."
