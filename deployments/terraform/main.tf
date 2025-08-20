@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.1"
+    }
   }
 }
 
@@ -25,8 +29,12 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+resource "random_id" "sg_suffix" {
+  byte_length = 4
+}
+
 resource "aws_security_group" "k3s" {
-  name        = "${var.name}-sg"
+  name        = "${var.name}-sg-${random_id.sg_suffix.hex}"
   description = "Security group for k3s node"
   vpc_id      = data.aws_vpc.default.id
 
