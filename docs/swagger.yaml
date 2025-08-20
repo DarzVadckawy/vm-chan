@@ -1,0 +1,167 @@
+basePath: /
+definitions:
+  domain.LoginRequest:
+    properties:
+      password:
+        example: password
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  domain.LoginResponse:
+    properties:
+      expires_in:
+        example: 3600
+        type: integer
+      token:
+        type: string
+    type: object
+  domain.TextAnalysisRequest:
+    properties:
+      sentence:
+        example: Hello world!
+        type: string
+    required:
+    - sentence
+    type: object
+  domain.TextAnalysisResponse:
+    properties:
+      consonant_count:
+        example: 7
+        type: integer
+      sentence:
+        example: Hello world!
+        type: string
+      vowel_count:
+        example: 3
+        type: integer
+      word_count:
+        example: 2
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@vm-chan.io
+    name: VM-Chan API Support
+    url: https://github.com/your-username/vm-chan
+  description: |-
+    VM-Chan is a production-ready microservice for analyzing text sentences and extracting linguistic statistics.
+
+    ## Features
+    - **Text Analysis**: Extract word count, vowel count, and consonant count from sentences
+    - **JWT Authentication**: Secure API access with Bearer token authentication
+    - **Production Ready**: Includes logging, metrics, health checks, and graceful shutdown
+    - **OpenAPI Documentation**: Interactive API documentation with examples
+
+    ## Quick Start
+    1. **Authenticate**: POST to `/auth/login` with credentials `{"username": "admin", "password": "password"}`
+    2. **Get Token**: Extract the JWT token from the response
+    3. **Analyze Text**: POST to `/api/v1/analyze` with Authorization header `Bearer <token>`
+
+    ## Example Usage
+    ```bash
+    # Login and get token
+    curl -X POST http://localhost:8080/auth/login -H "Content-Type: application/json" -d '{"username": "admin", "password": "password"}'
+
+    # Use token to analyze text
+    curl -X POST http://localhost:8080/api/v1/analyze -H "Authorization: Bearer <your-token>" -H "Content-Type: application/json" -d '{"sentence": "Hello world!"}'
+    ```
+
+    ## Response Format
+    All responses are in JSON format. Error responses include an `error` field with a descriptive message.
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: VM-Chan Text Analysis API
+  version: "1.0"
+paths:
+  /api/v1/analyze:
+    post:
+      consumes:
+      - application/json
+      description: Analyzes a sentence and returns word count, vowel count, and consonant
+        count. Requires Bearer token authentication.
+      parameters:
+      - description: Text to analyze
+        in: body
+        name: text_data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TextAnalysisRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Analysis completed successfully
+          schema:
+            $ref: '#/definitions/domain.TextAnalysisResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Analyze text sentence
+      tags:
+      - Text Analysis
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User login
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter your JWT token in the format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

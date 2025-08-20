@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: VM-Chan Text Analysis API
+  description: |
+    A microservice for analyzing text sentences that provides word count, vowel count, and consonant count statistics.
+    
+    ## Authentication
+    This API uses JWT Bearer token authentication. To authenticate:
+    1. Call POST /auth/login with valid credentials
+    2. Use the returned token in the Authorization header: `Bearer <token>`
+    
+    ## Default Credentials
+    - Username: admin
+    - Password: password
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@vm-chan.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://vm-chan.example.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns the health status of the service
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  service:
+                    type: string
+                    example: vm-chan
+                  version:
+                    type: string
+                    example: 1.0.0
+
+  /metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: Prometheus metrics
+      description: Returns Prometheus metrics for monitoring
+      security: []
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: Admin login
+                value:
+                  username: admin
+                  password: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/analyze:
+    post:
+      tags:
+        - Text Analysis
+      summary: Analyze text sentence
+      description: |
+        Analyzes a sentence and returns statistics about words, vowels, and consonants.
+        
+        **Algorithm:**
+        - **Words**: Count of space-separated words
+        - **Vowels**: Count of a, e, i, o, u (case-insensitive)
+        - **Consonants**: Count of all other letters
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextAnalysisRequest'
+            examples:
+              simple:
+                summary: Simple sentence
+                value:
+                  sentence: "Hello world"
+              complex:
+                summary: Complex sentence with punctuation
+                value:
+                  sentence: "Hello, beautiful world!"
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextAnalysisResponse'
+              examples:
+                simple:
+                  summary: Simple analysis result
+                  value:
+                    sentence: "Hello world"
+                    word_count: 2
+                    vowel_count: 3
+                    consonant_count: 7
+        '400':
+          description: Invalid request format or empty sentence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login endpoint
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Username for authentication
+          example: admin
+        password:
+          type: string
+          format: password
+          description: Password for authentication
+          example: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for authentication
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+
+    TextAnalysisRequest:
+      type: object
+      required:
+        - sentence
+      properties:
+        sentence:
+          type: string
+          description: The sentence to analyze
+          minLength: 1
+          example: "Hello world!"
+
+    TextAnalysisResponse:
+      type: object
+      properties:
+        sentence:
+          type: string
+          description: The original sentence
+          example: "Hello world!"
+        word_count:
+          type: integer
+          description: Number of words in the sentence
+          minimum: 0
+          example: 2
+        vowel_count:
+          type: integer
+          description: Number of vowels (a, e, i, o, u) in the sentence
+          minimum: 0
+          example: 3
+        consonant_count:
+          type: integer
+          description: Number of consonants in the sentence
+          minimum: 0
+          example: 7
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid credentials"

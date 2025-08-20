@@ -1,0 +1,84 @@
+---
+- hosts: k3s
+  become: yes
+  vars:
+    k3s_version: v1.28.5+k3s1
+    kubeconfig_mode: "0644"
+
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - ca-certificates
+          - apt-transport-https
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Check if k3s is already installed
+      stat:
+        path: /usr/local/bin/k3s
+      register: k3s_installed
+
+    - name: Install k3s server
+      shell: |
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" \
+        INSTALL_K3S_EXEC="--write-kubeconfig-mode {{ kubeconfig_mode }} --disable traefik" sh -
+      args:
+        creates: /usr/local/bin/k3s
+      when: not k3s_installed.stat.exists
+
+    - name: Wait for k3s to be ready
+      wait_for:
+        port: 6443
+        host: localhost
+        delay: 10
+        timeout: 120
+
+    - name: Create kubectl symlink
+      file:
+        src: /usr/local/bin/k3s
+        dest: /usr/local/bin/kubectl
+        state: link
+
+    - name: Ensure kubeconfig is readable
+      file:
+        path: /etc/rancher/k3s/k3s.yaml
+        mode: "{{ kubeconfig_mode }}"
+
+    - name: Create vmchan namespace
+      shell: kubectl create namespace vmchan --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Install NGINX Ingress Controller
+      shell: |
+        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+
+    - name: Wait for NGINX Ingress Controller to be ready
+      shell: kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=300s
+
+    - name: Create Docker registry secret for GHCR
+      shell: |
+        kubectl create secret docker-registry ghcr-secret \
+          --docker-server=ghcr.io \
+          --docker-username={{ github_actor }} \
+          --docker-password={{ github_token }} \
+          --namespace=vmchan \
+          --dry-run=client -o yaml | kubectl apply -f -
+      vars:
+        github_actor: "{{ ansible_env.GITHUB_ACTOR | default('') }}"
+        github_token: "{{ ansible_env.GITHUB_TOKEN | default('') }}"
+      when: ansible_env.GITHUB_ACTOR is defined and ansible_env.GITHUB_TOKEN is defined
+
+    - name: Get node info
+      shell: kubectl get nodes -o wide
+      register: node_info
+
+    - name: Display node information
+      debug:
+        msg: "{{ node_info.stdout_lines }}"

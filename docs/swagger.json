@@ -1,0 +1,209 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "VM-Chan is a production-ready microservice for analyzing text sentences and extracting linguistic statistics.\n\n## Features\n- **Text Analysis**: Extract word count, vowel count, and consonant count from sentences\n- **JWT Authentication**: Secure API access with Bearer token authentication\n- **Production Ready**: Includes logging, metrics, health checks, and graceful shutdown\n- **OpenAPI Documentation**: Interactive API documentation with examples\n\n## Quick Start\n1. **Authenticate**: POST to `/auth/login` with credentials `{\"username\": \"admin\", \"password\": \"password\"}`\n2. **Get Token**: Extract the JWT token from the response\n3. **Analyze Text**: POST to `/api/v1/analyze` with Authorization header `Bearer \u003ctoken\u003e`\n\n## Example Usage\n```bash\n# Login and get token\ncurl -X POST http://localhost:8080/auth/login -H \"Content-Type: application/json\" -d '{\"username\": \"admin\", \"password\": \"password\"}'\n\n# Use token to analyze text\ncurl -X POST http://localhost:8080/api/v1/analyze -H \"Authorization: Bearer \u003cyour-token\u003e\" -H \"Content-Type: application/json\" -d '{\"sentence\": \"Hello world!\"}'\n```\n\n## Response Format\nAll responses are in JSON format. Error responses include an `error` field with a descriptive message.",
+        "title": "VM-Chan Text Analysis API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "VM-Chan API Support",
+            "url": "https://github.com/your-username/vm-chan",
+            "email": "support@vm-chan.io"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/analyze": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Analyzes a sentence and returns word count, vowel count, and consonant count. Requires Bearer token authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Text Analysis"
+                ],
+                "summary": "Analyze text sentence",
+                "parameters": [
+                    {
+                        "description": "Text to analyze",
+                        "name": "text_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TextAnalysisRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis completed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/domain.TextAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticate user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "password"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "domain.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.TextAnalysisRequest": {
+            "type": "object",
+            "required": [
+                "sentence"
+            ],
+            "properties": {
+                "sentence": {
+                    "type": "string",
+                    "example": "Hello world!"
+                }
+            }
+        },
+        "domain.TextAnalysisResponse": {
+            "type": "object",
+            "properties": {
+                "consonant_count": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "sentence": {
+                    "type": "string",
+                    "example": "Hello world!"
+                },
+                "vowel_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "word_count": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Enter your JWT token in the format: Bearer {token}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

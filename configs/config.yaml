@@ -1,0 +1,14 @@
+server:
+  port: "8080"
+  read_timeout: 30
+  write_timeout: 30
+
+auth:
+  jwt_secret: "your-secret-key-change-in-production"
+
+logging:
+  level: "info"
+  format: "json"
+
+metrics:
+  enabled: true

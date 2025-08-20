@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vm-chan
+  labels:
+    name: vm-chan
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vm-chan-secrets
+  namespace: vm-chan
+type: Opaque
+data:
+  jwt-secret: eW91ci1zZWNyZXQta2V5 # base64 encoded "your-secret-key"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vm-chan-config
+  namespace: vm-chan
+data:
+  PORT: "8080"
+  LOG_LEVEL: "info"
+  METRICS_ENABLED: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vm-chan
+  namespace: vm-chan
+  labels:
+    app: vm-chan
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vm-chan
+  template:
+    metadata:
+      labels:
+        app: vm-chan
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      imagePullSecrets:
+        - name: ghcr-secret
+        image: ghcr.io/REPO_OWNER/REPO_NAME:{{GIT_SHA}}
+      - name: vm-chan
+        image: ghcr.io/REPO_OWNER/REPO_NAME:{{GIT_SHA}}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          value: "8080"
+        - name: API_KEY
+        env:
+            secretKeyRef:
+              name: vm-chan-secrets
+              key: api_key
+              optional: true
+          valueFrom:
+          value: "info"
+        - name: LOG_LEVEL
+          value: "true"
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+            memory: "256Mi"
+        livenessProbe:
+            path: /healthz
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+            path: /healthz
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+  labels:
+    app: vm-chan
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+    name: http
+  selector:
+    app: vm-chan
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vm-chan-ingress
+  namespace: vm-chan
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: vm-chan.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vm-chan-service
+            port:
+              number: 8080
