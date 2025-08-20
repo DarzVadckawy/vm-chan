@@ -96,7 +96,8 @@ func main() {
 	defer func(logger *zap.Logger) {
 		err := logger.Sync()
 		if err != nil {
-
+			// Logger sync errors are non-critical, just log them
+			fmt.Printf("Error syncing logger: %v\n", err)
 		}
 	}(logger)
 

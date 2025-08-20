@@ -56,10 +56,10 @@ func LoadConfig() (*Config, error) {
 
 	// Bind environment variables
 	viper.AutomaticEnv()
-	viper.BindEnv("server.port", "PORT")
-	viper.BindEnv("auth.jwt_secret", "JWT_SECRET")
-	viper.BindEnv("logging.level", "LOG_LEVEL")
-	viper.BindEnv("metrics.enabled", "METRICS_ENABLED")
+	_ = viper.BindEnv("server.port", "PORT")
+	_ = viper.BindEnv("auth.jwt_secret", "JWT_SECRET")
+	_ = viper.BindEnv("logging.level", "LOG_LEVEL")
+	_ = viper.BindEnv("metrics.enabled", "METRICS_ENABLED")
 
 	// Read config file if it exists
 	if err := viper.ReadInConfig(); err != nil {
