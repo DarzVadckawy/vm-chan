@@ -30,7 +30,6 @@ resource "aws_security_group" "k3s" {
   description = "Security group for k3s node"
   vpc_id      = data.aws_vpc.default.id
 
-  # SSH access from your IP only
   ingress {
     from_port   = 22
     to_port     = 22
