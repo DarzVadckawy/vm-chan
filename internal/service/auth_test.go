@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type MockUserRepository struct {
@@ -26,16 +27,18 @@ func TestAuthService_Login(t *testing.T) {
 	service := NewAuthService(mockRepo, "test-secret", logger)
 
 	t.Run("Successful login", func(t *testing.T) {
-		hashedPassword := "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+		// Use a test password hash instead of hardcoded production-like hash
+		testPassword := "testpass123"
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.DefaultCost)
 		user := &domain.User{
 			ID:       "1",
 			Username: "testuser",
-			Password: hashedPassword,
+			Password: string(hashedPassword),
 		}
 
 		mockRepo.On("GetByUsername", mock.Anything, "testuser").Return(user, nil).Once()
 
-		result, err := service.Login(context.Background(), "testuser", "password")
+		result, err := service.Login(context.Background(), "testuser", testPassword)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, result.Token)

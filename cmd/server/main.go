@@ -34,9 +34,8 @@ func main() {
 
 	logger := initLogger(cfg.Logging.Level)
 	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			fmt.Printf("Error syncing logger: %v\n", err)
+		if syncErr := logger.Sync(); syncErr != nil {
+			fmt.Printf("Error syncing logger: %v\n", syncErr)
 		}
 	}(logger)
 
@@ -80,9 +79,13 @@ func main() {
 	logger.Info("Server exited")
 }
 
-func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler,
-	textAnalysisHandler *handler.TextAnalysisHandler, authService domain.AuthService) *gin.Engine {
-
+func setupRouter(
+	cfg *config.Config,
+	logger *zap.Logger,
+	authHandler *handler.AuthHandler,
+	textAnalysisHandler *handler.TextAnalysisHandler,
+	authService domain.AuthService,
+) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
@@ -112,15 +115,11 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	authGroup := router.Group("/auth")
-	{
-		authGroup.POST("/login", authHandler.Login)
-	}
+	authGroup.POST("/login", authHandler.Login)
 
 	apiGroup := router.Group("/api/v1")
 	apiGroup.Use(middleware.AuthMiddleware(authService, logger))
-	{
-		apiGroup.POST("/analyze", textAnalysisHandler.AnalyzeText)
-	}
+	apiGroup.POST("/analyze", textAnalysisHandler.AnalyzeText)
 
 	return router
 }
